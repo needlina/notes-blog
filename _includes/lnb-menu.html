@@ -1,0 +1,52 @@
+{% assign lnb_menu = site.data.lnb_menu %}
+
+{% if lnb_menu %}
+  <section class="lnb-menu{% if include.embedded %} embedded{% endif %}" aria-label="Local menu">
+    {% unless include.embedded %}
+      <div class="lnb-menu-heading">MENU</div>
+    {% endunless %}
+
+    {% for group in lnb_menu %}
+      {% if page.url contains '/topics/' and page.url != '/topics/' %}
+        {% assign group_open = false %}
+        {% if page.url contains group.url %}
+          {% assign group_open = true %}
+        {% endif %}
+      {% else %}
+        {% assign group_open = group.open %}
+      {% endif %}
+
+      <details class="lnb-menu-group" {% if group_open %}open{% endif %}>
+        <summary>
+          <span class="lnb-menu-title">
+            {% if group.icon %}
+              <i class="{{ group.icon }}"></i>
+            {% endif %}
+            <span>{{ group.title }}</span>
+          </span>
+          <i class="fas fa-chevron-down lnb-menu-chevron"></i>
+        </summary>
+
+        {% if group.children %}
+          <ul>
+            {% for child in group.children %}
+              <li>
+                <a href="{{ child.url | relative_url }}">{{ child.title }}</a>
+
+                {% if child.children %}
+                  <ul class="lnb-menu-sublist">
+                    {% for item in child.children %}
+                      <li>
+                        <a href="{{ item.url | relative_url }}">{{ item.title }}</a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </details>
+    {% endfor %}
+  </section>
+{% endif %}
