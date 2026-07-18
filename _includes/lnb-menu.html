@@ -16,7 +16,12 @@
         {% assign group_open = group.open %}
       {% endif %}
 
-      <details class="lnb-menu-group" {% if group_open %}open{% endif %}>
+      <details
+        class="lnb-menu-group"
+        data-lnb-url="{{ group.url }}"
+        data-lnb-default-open="{{ group.open | default: false }}"
+        {% if group_open %}open{% endif %}
+      >
         <summary>
           <span class="lnb-menu-title">
             {% if group.icon %}
@@ -30,14 +35,34 @@
         {% if group.children %}
           <ul>
             {% for child in group.children %}
-              <li>
-                <a href="{{ child.url | relative_url }}">{{ child.title }}</a>
+              {% assign child_active = false %}
+              {% if page.url contains child.url %}
+                {% assign child_active = true %}
+              {% endif %}
+
+              <li{% if child_active %} class="active"{% endif %}>
+                <a
+                  href="{{ child.url | relative_url }}"
+                  {% if child_active %}class="active" aria-current="page"{% endif %}
+                >
+                  {{ child.title }}
+                </a>
 
                 {% if child.children %}
                   <ul class="lnb-menu-sublist">
                     {% for item in child.children %}
-                      <li>
-                        <a href="{{ item.url | relative_url }}">{{ item.title }}</a>
+                      {% assign item_active = false %}
+                      {% if page.url contains item.url %}
+                        {% assign item_active = true %}
+                      {% endif %}
+
+                      <li{% if item_active %} class="active"{% endif %}>
+                        <a
+                          href="{{ item.url | relative_url }}"
+                          {% if item_active %}class="active" aria-current="page"{% endif %}
+                        >
+                          {{ item.title }}
+                        </a>
                       </li>
                     {% endfor %}
                   </ul>

@@ -962,7 +962,8 @@ $btn-mb: 0.5rem;
       border-radius: 0.45rem;
       font-size: 0.82rem;
 
-      &:hover {
+      &:hover,
+      &.active {
         color: var(--sidebar-active-color);
         background-color: var(--sidebar-hover-bg);
       }
@@ -1001,6 +1002,10 @@ $btn-mb: 0.5rem;
     a {
       font-size: 0.78rem;
       opacity: 0.86;
+
+      &.active {
+        opacity: 1;
+      }
     }
   }
 

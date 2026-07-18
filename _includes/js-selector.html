@@ -64,6 +64,59 @@
 
 <script src="{{ script | relative_url }}"></script>
 
+<script>
+  (function () {
+    function normalizePath(path) {
+      return path.endsWith('/') ? path : path + '/';
+    }
+
+    function syncLnbMenu(syncTopicToggle) {
+      var path = normalizePath(window.location.pathname);
+      var isTopicsPage = path.indexOf('/topics/') === 0;
+      var topicToggle = document.querySelector('.lnb-topic');
+
+      if (topicToggle && syncTopicToggle !== false) {
+        topicToggle.open = isTopicsPage;
+      }
+
+      document.querySelectorAll('.lnb-menu').forEach(function (menu) {
+        var groups = Array.prototype.slice.call(menu.querySelectorAll(':scope > .lnb-menu-group'));
+
+        groups.forEach(function (group) {
+          var groupUrl = normalizePath(group.dataset.lnbUrl || '');
+          var shouldOpen = group.dataset.lnbDefaultOpen === 'true';
+
+          if (isTopicsPage && path !== '/topics/') {
+            shouldOpen = groupUrl && path.indexOf(groupUrl) === 0;
+          } else if (isTopicsPage) {
+            shouldOpen = groupUrl === '/topics/daily/';
+          }
+
+          group.open = shouldOpen;
+        });
+      });
+    }
+
+    window.addEventListener('pageshow', function () {
+      syncLnbMenu(true);
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var topicToggle = document.querySelector('.lnb-topic');
+
+      if (topicToggle) {
+        topicToggle.addEventListener('toggle', function () {
+          if (topicToggle.open) {
+            syncLnbMenu(false);
+          }
+        });
+      }
+
+      syncLnbMenu(true);
+    });
+  })();
+</script>
+
 {% if page.math %}
   <!-- MathJax -->
   <script src="{{ '/assets/js/data/mathjax.js' | relative_url }}"></script>
