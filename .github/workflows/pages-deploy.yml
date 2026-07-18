@@ -80,5 +80,6 @@ jobs:
         run: node scripts/verify-indexing-readiness.mjs
         env:
           SITE_URL: https://notes.henjini.com
+          INDEXING_CHECK_POST_URL_PREFIX: /topics/
           INDEXING_CHECK_RETRIES: 6
           INDEXING_CHECK_DELAY_MS: 10000

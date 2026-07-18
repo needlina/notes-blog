@@ -8,6 +8,8 @@ const delayMs = parseIntegerEnv("INDEXING_CHECK_DELAY_MS", 10000);
 const timeoutMs = parseIntegerEnv("INDEXING_CHECK_TIMEOUT_MS", 15000);
 const checkMode = (process.env.INDEXING_CHECK_MODE || "smoke").toLowerCase();
 const changedDays = parseIntegerEnv("INDEXING_CHECK_CHANGED_DAYS", 14);
+const postUrlPrefix = process.env.INDEXING_CHECK_POST_URL_PREFIX || "/topics/";
+const topicPostMinSegments = parseIntegerEnv("INDEXING_CHECK_TOPIC_POST_MIN_SEGMENTS", 3);
 const explicitPostLimit = process.env.INDEXING_CHECK_POST_LIMIT
   ? parseIntegerEnv("INDEXING_CHECK_POST_LIMIT", 0)
   : null;
@@ -40,7 +42,7 @@ async function main() {
   }
 
   const postEntries = ownSitemapEntries
-    .filter((entry) => entry.pathname.includes("/posts/"))
+    .filter((entry) => isPostPath(entry.pathname))
     .sort((a, b) => b.lastmodTime - a.lastmodTime || a.loc.localeCompare(b.loc));
 
   validatePostSitemapEntries(postEntries);
@@ -59,6 +61,7 @@ async function main() {
   }
 
   results.push(["check mode", checkMode]);
+  results.push(["post url prefix", postUrlPrefix]);
   results.push(["sitemap urls", `${sitemapUrls.length}`]);
   results.push(["sitemap post urls", `${postEntries.length}`]);
   results.push(["feed post urls", `${feedPostUrls.length}`]);
@@ -120,7 +123,7 @@ function validateSitemapEntries(entries) {
 
 function validatePostSitemapEntries(postEntries) {
   if (postEntries.length === 0) {
-    failures.push("sitemap.xml does not include any /posts/ URLs");
+    failures.push(`sitemap.xml does not include any post URLs matching ${postUrlPrefix}`);
     return;
   }
 
@@ -138,7 +141,7 @@ function validatePostSitemapEntries(postEntries) {
 
 function validateFeedCoverage(feedPostUrls, postEntries) {
   if (feedPostUrls.length === 0) {
-    warnings.push("feed.xml does not expose any /posts/ URLs");
+    warnings.push(`feed.xml does not expose any post URLs matching ${postUrlPrefix}`);
     return;
   }
 
@@ -285,12 +288,29 @@ function extractFeedPostUrls(xml) {
     const url = decodeXml(match[1].trim());
     const parsedUrl = parseUrl(url);
 
-    if (parsedUrl?.origin === new URL(siteUrl).origin && parsedUrl.pathname.includes("/posts/")) {
+    if (parsedUrl?.origin === new URL(siteUrl).origin && isPostPath(parsedUrl.pathname)) {
       urls.add(normalizeUrl(parsedUrl.href));
     }
   }
 
   return [...urls];
+}
+
+function isPostPath(pathname) {
+  if (!pathname.startsWith(postUrlPrefix)) {
+    return false;
+  }
+
+  if (postUrlPrefix === "/topics/") {
+    const rest = pathname.slice(postUrlPrefix.length).replace(/\/$/, "");
+    if (!rest) {
+      return false;
+    }
+
+    return rest.split("/").filter(Boolean).length >= topicPostMinSegments;
+  }
+
+  return true;
 }
 
 function assertIncludes(value, expected, message) {

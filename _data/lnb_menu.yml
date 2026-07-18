@@ -20,7 +20,7 @@
   icon: fas fa-book-open
   slug: study
   url: /topics/study/
-  open: true
+  open: false
   children:
     - title: 개발
       slug: dev
